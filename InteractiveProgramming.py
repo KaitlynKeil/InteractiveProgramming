@@ -63,7 +63,7 @@ class CirclePlotModel(object):
 
         # For now, we don't care what the elements actually are; we want to make sure it points
         # to the right place with all 10 integers.
-        
+
         # element_list = sorted(element_histogram.keys())
         element_list = list('0123456789')
         print element_list
@@ -72,27 +72,38 @@ class CirclePlotModel(object):
         margin = wedge_angle * self.ELEMENT_MARGIN_MULTIPLIER
         starting_angle = 0
         d_theta = wedge_angle - margin
-        centerpoint_dict = {}
+
+        #A dictionary of possible startpoints
+        startpoint_dict = {}
 
         for element in element_list:
             arc = ElementArc(starting_angle, starting_angle + d_theta, self.ELEMENT_WIDTH)
-            angle_center = starting_angle + d_theta / 2
-            centerpoint_dict[element] = angle_center
-            starting_angle += wedge_angle
             self.elements.append(arc)
+
+            #Because the number might not have all 10 digits
+            if element in element_histogram:
+                startpoint_d_theta = d_theta / (element_histogram[element]+1)
+                startpoints = [margin + starting_angle + startpoint_d_theta*i for i in range(1,element_histogram[element]+1)]
+                startpoint_dict[element] = startpoints
+
+            starting_angle += wedge_angle
 
         # Assumes integers
         for first, second in connection_list:
-            first_point_x = 350 + inner_radius*cos(centerpoint_dict[first])
-            first_point_y = 350 + inner_radius*sin(centerpoint_dict[first])
-            second_point_x = 350 + inner_radius*cos(centerpoint_dict[second])
-            second_point_y = 350 + inner_radius*sin(centerpoint_dict[second])
+            first_angle = startpoint_dict[first].pop(0)
+            first_point_x = 350 + inner_radius*cos(first_angle)
+            first_point_y = 350 + inner_radius*sin(first_angle)
+
+            second_angle = startpoint_dict[second][0]
+            second_point_x = 350 + inner_radius*cos(second_angle)
+            second_point_y = 350 + inner_radius*sin(second_angle)
             connection = ConnectionArc((first_point_x, first_point_y), (second_point_x, second_point_y))
             self.connections.append(connection)
 
 def generate_connection_histogram(input_list):
-    """Given a list of strings, generate a histogram of each adjacent
-    pair of strings in the list, stored as a dictionary.
+    """Given a list of strings, generate two things:
+    A list of each pair of adjacent elements as tuples
+    A histogram of the number of occurences of each element, stored in a dictionary.
 
     >>> pair_list, list = generate_connection_histogram(['the','dog','and','the','dog'])
     >>> print pair_list[0]
