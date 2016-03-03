@@ -52,7 +52,7 @@ class ConnectionArc(object):
     
 class CirclePlotModel(object):
     """ Stores the state of the circle plot """
-    def __init__(self, element_list, connection_dict, circle_radius = 300):
+    def __init__(self, element_list, connection_list, circle_radius = 300):
         self.elements = []
         self.connections = []
         self.ELEMENT_MARGIN_MULTIPLIER = .05
@@ -75,7 +75,7 @@ class CirclePlotModel(object):
             self.elements.append(arc)
 
         # Assumes integers
-        for first, second in connection_dict:
+        for first, second in connection_list:
             first_point_x = 350 + inner_radius*cos(centerpoint_dict[first])
             first_point_y = 350 + inner_radius*sin(centerpoint_dict[first])
             second_point_x = 350 + inner_radius*cos(centerpoint_dict[second])
@@ -87,13 +87,13 @@ def generate_connection_histogram(input_list):
     """Given a list of strings, generate a histogram of each adjacent
     pair of strings in the list, stored as a dictionary.
 
-    >>> dict, list = generate_connection_histogram(['the','dog','and','the','dog'])
-    >>> print dict[('the', 'dog')]
-    2
-    >>> print dict[('dog', 'and')]
-    1
+    >>> pair_list, list = generate_connection_histogram(['the','dog','and','the','dog'])
+    >>> print pair_list[0]
+    ('the', 'dog')
+    >>> print pair_list[1]
+    ('dog', 'and')
     """
-    output_dict = {}
+    output_list = []
     word_list = []
 
     for i in range(len(input_list)-1):
@@ -104,9 +104,9 @@ def generate_connection_histogram(input_list):
         if first not in word_list:
             word_list.append(first)
 
-        output_dict[pair] = output_dict.get(pair, 0) + 1
+        output_list.append(pair)
 
-    return output_dict, word_list
+    return output_list, word_list
 
 def sanitize_float(flt):
     """Given a floating point number, returns a list of the digits of the
@@ -124,7 +124,7 @@ def sanitize_float(flt):
 if __name__ == '__main__':
     import doctest
     doctest.testmod()
-    connection_dict, element_list = generate_connection_histogram(sanitize_float(pi))
+    connection_list, element_list = generate_connection_histogram(sanitize_float(pi))
     # For now, we don't care what the elements actually are; we want to make sure it points
     #  to the right place with all 10 integers.
     element_list = list('0123456789')
@@ -134,7 +134,7 @@ if __name__ == '__main__':
     size = (700, 700)
     screen = pygame.display.set_mode(size)
 
-    model = CirclePlotModel(element_list, connection_dict)
+    model = CirclePlotModel(element_list, connection_list)
     view = CirclePlotView(model, screen)
 
     running = True
