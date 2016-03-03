@@ -23,7 +23,7 @@ class CirclePlotView(object):
         for element in self.model.elements:
             pygame.draw.arc(self.screen, pygame.Color(element.color), model.RECTANGLE, element.start_angle, element.stop_angle, element.width)
         for connection in self.model.connections:
-            pygame.draw.line(self.screen, pygame.Color("white"), connection.start_pos, connection.end_pos, connection.width)
+            pygame.draw.line(self.screen, pygame.Color(connection.color), connection.start_pos, connection.end_pos, connection.width)
         pygame.display.update()
 
 class ElementArc(object):
@@ -35,20 +35,21 @@ class ElementArc(object):
         stop_angle = the angle (in radians) at which the arc ends
     """
 #arc(Surface, color, Rect, start_angle, stop_angle, width=1)
-    def __init__(self, start_angle, stop_angle, width):
+    def __init__(self, start_angle, stop_angle, color, width):
         self.start_angle = start_angle
         self.stop_angle = stop_angle
         self.width = width
-        self.color = choice(["red", "green", "orange", "blue", "purple"])
+        self.color = color
 
 class ConnectionArc(object):
     """ Connects two elements. Currently a straight line.
     """
     #line(Surface, color, start_pos, end_pos, width=1) -> Rect
-    def __init__(self, start_pos, end_pos, width = 1):
+    def __init__(self, start_pos, end_pos, color, width = 1):
         self.start_pos = start_pos
         self.end_pos = end_pos
         self.width = width
+        self.color = color
     
 class CirclePlotModel(object):
     """ Stores the state of the circle plot """
@@ -68,25 +69,30 @@ class CirclePlotModel(object):
         element_list = list('0123456789')
         print element_list
 
+        colors = ['red','blue','green','orange','purple']
+
         wedge_angle = 2*pi / len(element_list)
         margin = wedge_angle * self.ELEMENT_MARGIN_MULTIPLIER
-        starting_angle = 0
+        starting_angle = -wedge_angle
         d_theta = wedge_angle - margin
 
         #A dictionary of possible startpoints
         startpoint_dict = {}
 
+        color_dict = {'0':'red','1':'blue','2':'green','3':'orange','4':'purple',
+            '5':'red','6':'blue','7':'green','8':'orange','9':'purple'}
+
         for element in element_list:
-            arc = ElementArc(starting_angle, starting_angle + d_theta, self.ELEMENT_WIDTH)
+            arc = ElementArc(starting_angle, starting_angle + d_theta, color_dict[element], self.ELEMENT_WIDTH)
             self.elements.append(arc)
 
             #Because the number might not have all 10 digits
             if element in element_histogram:
                 startpoint_d_theta = d_theta / (element_histogram[element]+1)
-                startpoints = [margin + starting_angle + startpoint_d_theta*i for i in range(1,element_histogram[element]+1)]
+                startpoints = [margin - starting_angle - startpoint_d_theta*i for i in range(1,element_histogram[element]+1)]
                 startpoint_dict[element] = startpoints
 
-            starting_angle += wedge_angle
+            starting_angle -= wedge_angle
 
         # Assumes integers
         for first, second in connection_list:
@@ -97,7 +103,7 @@ class CirclePlotModel(object):
             second_angle = startpoint_dict[second][0]
             second_point_x = 350 + inner_radius*cos(second_angle)
             second_point_y = 350 + inner_radius*sin(second_angle)
-            connection = ConnectionArc((first_point_x, first_point_y), (second_point_x, second_point_y))
+            connection = ConnectionArc((first_point_x, first_point_y), (second_point_x, second_point_y),color_dict[first])
             self.connections.append(connection)
 
 def generate_connection_histogram(input_list):
@@ -141,7 +147,8 @@ def sanitize_float(flt):
 if __name__ == '__main__':
     import doctest
     doctest.testmod()
-    connection_list, word_histogram = generate_connection_histogram(sanitize_float(pi))
+    long_pi = "3.141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117067982148086513282306647093844609550582231725359408128481117450284102701938521105559644622948954930381964428810975665933446128475648233786783165271201909145648566923460348610454326648213393607260249141273724587006606315588174881520920962829254091715364367892590360011330530548820466521384146951941511609433057270365759591953092186117381932611793105118548074462379962749567351885752724891227938183011949129833673362440656643086021394946395224737190"
+    connection_list, word_histogram = generate_connection_histogram(sanitize_float(long_pi))
     pygame.init()
     size = (700, 700)
     screen = pygame.display.set_mode(size)
