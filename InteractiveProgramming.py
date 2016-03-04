@@ -53,7 +53,7 @@ class ConnectionArc(object):
     
 class CirclePlotModel(object):
     """ Stores the state of the circle plot """
-    def __init__(self, element_histogram, connection_list, circle_radius = 300):
+    def __init__(self, element_histogram, connection_list, circle_radius = 450):
         self.elements = []
         self.connections = []
         self.ELEMENT_MARGIN_MULTIPLIER = .05
@@ -67,7 +67,6 @@ class CirclePlotModel(object):
 
         # element_list = sorted(element_histogram.keys())
         element_list = list('0123456789')
-        print element_list
 
         colors = ['red','blue','green','orange','purple']
 
@@ -80,7 +79,7 @@ class CirclePlotModel(object):
         startpoint_dict = {}
 
         color_dict = {'0':'red','1':'blue','2':'green','3':'orange','4':'purple',
-            '5':'red','6':'blue','7':'green','8':'orange','9':'purple'}
+            '5':'yellow','6':'red','7':'blue','8':'green','9':'orange'}
 
         for element in element_list:
             arc = ElementArc(starting_angle, starting_angle + d_theta, color_dict[element], self.ELEMENT_WIDTH)
@@ -97,12 +96,12 @@ class CirclePlotModel(object):
         # Assumes integers
         for first, second in connection_list:
             first_angle = startpoint_dict[first].pop(0)
-            first_point_x = 350 + inner_radius*cos(first_angle)
-            first_point_y = 350 + inner_radius*sin(first_angle)
+            first_point_x = 500 + inner_radius*cos(first_angle)
+            first_point_y = 500 + inner_radius*sin(first_angle)
 
             second_angle = startpoint_dict[second][0]
-            second_point_x = 350 + inner_radius*cos(second_angle)
-            second_point_y = 350 + inner_radius*sin(second_angle)
+            second_point_x = 500 + inner_radius*cos(second_angle)
+            second_point_y = 500 + inner_radius*sin(second_angle)
             connection = ConnectionArc((first_point_x, first_point_y), (second_point_x, second_point_y),color_dict[first])
             self.connections.append(connection)
 
@@ -141,16 +140,18 @@ def sanitize_float(flt):
 
     flt_string = str(flt)
     flt_list = list(flt_string)
-    flt_list.remove('.')
+    if '.' in flt_list:
+        flt_list.remove('.')
     return flt_list
 
 if __name__ == '__main__':
     import doctest
     doctest.testmod()
+    medium_pi = "3.1415926535897932384626433832795028841971693993751058209749445923078164"
     long_pi = "3.141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117067982148086513282306647093844609550582231725359408128481117450284102701938521105559644622948954930381964428810975665933446128475648233786783165271201909145648566923460348610454326648213393607260249141273724587006606315588174881520920962829254091715364367892590360011330530548820466521384146951941511609433057270365759591953092186117381932611793105118548074462379962749567351885752724891227938183011949129833673362440656643086021394946395224737190"
-    connection_list, word_histogram = generate_connection_histogram(sanitize_float(long_pi))
+    connection_list, word_histogram = generate_connection_histogram(sanitize_float(2.0/7))
     pygame.init()
-    size = (700, 700)
+    size = (1000, 1000)
     screen = pygame.display.set_mode(size)
 
     model = CirclePlotModel(word_histogram, connection_list)
