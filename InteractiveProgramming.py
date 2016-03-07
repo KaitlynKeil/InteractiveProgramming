@@ -24,6 +24,8 @@ class CirclePlotView(object):
             pygame.draw.arc(self.screen, pygame.Color(element.color), model.RECTANGLE, element.start_angle, element.stop_angle, element.width)
         for connection in self.model.connections:
             pygame.draw.line(self.screen, pygame.Color(connection.color), connection.start_pos, connection.end_pos, connection.width)
+        #for button in self.buttons:
+        #    pygame.draw.rect(self.screen, pygame.Color("red"), button, button.look)
         pygame.display.update()
 
 class ElementArc(object):
@@ -50,17 +52,29 @@ class ConnectionArc(object):
         self.end_pos = end_pos
         self.width = width
         self.color = color
+
+class Button(pygame.Rect):
+    """ Pygame rectangle with a label """
+    def __init__(self, x_ul, y_ul, width, height, label, look = 0):
+        self.label = label
+        self.look = look
+        super(Button, self).__init__(x_ul, y_ul, width, height)
     
 class CirclePlotModel(object):
     """ Stores the state of the circle plot """
-    def __init__(self, element_histogram, connection_list, circle_radius = 400):
+    def __init__(self, number, button_list, circle_radius = 400):
         self.elements = []
         self.connections = []
+        self.buttons = []
         self.ELEMENT_MARGIN_MULTIPLIER = .05
-        self.RECTANGLE = pygame.Rect(50, 50, circle_radius * 2, circle_radius * 2)
+        self.CIRCLE_MARGIN = 50
+        self.RECTANGLE = pygame.Rect(self.CIRCLE_MARGIN, self.CIRCLE_MARGIN, circle_radius * 2, circle_radius * 2)
         self.RADIUS = circle_radius
         self.ELEMENT_WIDTH = 20
+        self.CIRCLE_CENTER = self.CIRCLE_MARGIN + circle_radius
         inner_radius = circle_radius - self.ELEMENT_WIDTH
+
+        connection_list, element_histogram = generate_connection_histogram(sanitize_float(number))
 
         # For now, we don't care what the elements actually are; we want to make sure it points
         # to the right place with all 10 integers.
@@ -96,14 +110,17 @@ class CirclePlotModel(object):
         # Assumes integers
         for first, second in connection_list:
             first_angle = startpoint_dict[first].pop(0)
-            first_point_x = 500 + inner_radius*cos(first_angle)
-            first_point_y = 500 + inner_radius*sin(first_angle)
+            first_point_x = self.CIRCLE_CENTER + inner_radius*cos(first_angle)
+            first_point_y = self.CIRCLE_CENTER + inner_radius*sin(first_angle)
 
             second_angle = startpoint_dict[second][0]
-            second_point_x = 500 + inner_radius*cos(second_angle)
-            second_point_y = 500 + inner_radius*sin(second_angle)
+            second_point_x = self.CIRCLE_CENTER + inner_radius*cos(second_angle)
+            second_point_y = self.CIRCLE_CENTER + inner_radius*sin(second_angle)
             connection = ConnectionArc((first_point_x, first_point_y), (second_point_x, second_point_y),color_dict[first])
             self.connections.append(connection)
+
+        #for button in button_list:
+
 
 def generate_connection_histogram(input_list):
     """Given a list of strings, generate two things:
@@ -147,14 +164,26 @@ def sanitize_float(flt):
 if __name__ == '__main__':
     import doctest
     doctest.testmod()
+    pi_value = pi
     medium_pi = "3.1415926535897932384626433832795028841971693993751058209749445923078164"
     long_pi = "3.141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117067982148086513282306647093844609550582231725359408128481117450284102701938521105559644622948954930381964428810975665933446128475648233786783165271201909145648566923460348610454326648213393607260249141273724587006606315588174881520920962829254091715364367892590360011330530548820466521384146951941511609433057270365759591953092186117381932611793105118548074462379962749567351885752724891227938183011949129833673362440656643086021394946395224737190"
-    connection_list, word_histogram = generate_connection_histogram(sanitize_float(0))
+    one_seventh = str(1/7)
+    three_sevenths = str(3/7)
+    five_sevenths = str(5/7)
+    e_value = str(e)
+    one_eleventh = str(1/11)
+    one_121 = str(1/121)
+    one_ll_cubed = str(1/(11**3))
+    phi = str((1 + 5 ** 0.5) / 2)
+    potential_plots = [pi_value, medium_pi, long_pi, one_seventh, three_sevenths, five_sevenths,
+    e_value, one_eleventh, one_121, one_ll_cubed, phi, 0]
+    print len(potential_plots)
+    #connection_list, word_histogram = generate_connection_histogram(sanitize_float(0))
     pygame.init()
     size = (900, 1000)
     screen = pygame.display.set_mode(size)
 
-    model = CirclePlotModel(word_histogram, connection_list)
+    model = CirclePlotModel(0, potential_plots)
     view = CirclePlotView(model, screen)
 
     running = True
