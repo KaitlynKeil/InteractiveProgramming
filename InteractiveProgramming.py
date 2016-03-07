@@ -8,7 +8,7 @@ SoftDes Spring 2016
 
 from math import *
 import pygame
-from pygame.locals import QUIT
+from pygame.locals import QUIT, MOUSEMOTION, MOUSEBUTTONDOWN, MOUSEBUTTONUP
 import time
 from random import choice
 
@@ -28,14 +28,13 @@ class CirclePlotView(object):
         self.screen.fill(pygame.Color('black'))
         for element in self.model.elements:
             pygame.draw.arc(self.screen, pygame.Color(element.color), model.RECTANGLE, element.start_angle, element.stop_angle, element.width)
-            label = pygame.image.load('images/0.png')
-            label.convert_alpha()
-            #color_surface(label,element.color)
-            self.screen.blit(label,model.RECTANGLE)
         for connection in self.model.connections:
             pygame.draw.line(self.screen, pygame.Color(connection.color), connection.start_pos, connection.end_pos, connection.width)
         for button in self.model.buttons:
             pygame.draw.circle(self.screen, pygame.Color('white'), button.center, button.radius, 0)
+        for label in self.model.labels:
+            self.screen.blit(label.im,label.pos)    
+
         pygame.display.update()
 
 class ElementArc(object):
@@ -68,6 +67,22 @@ class Button(object):
     def __init__(self, center, radius):
         self.center = center
         self.radius = radius
+
+class Label(object):
+    """ Makes a label object """
+    def __init__(self, file_name, pos, color):
+        self.file_name = file_name
+        self.pos = pos
+        self.color = color
+
+        self.color = pygame.Color(self.color)
+        self.r = self.color.r
+        self.g = self.color.g
+        self.b = self.color.b
+
+        self.im = pygame.image.load(file_name)
+        self.im.convert_alpha()
+        color_surface(self.im,self.r,self.g,self.b)
     
 class CirclePlotModel(object):
     """ Stores the state of the circle plot """
@@ -75,6 +90,7 @@ class CirclePlotModel(object):
         self.elements = []
         self.connections = []
         self.buttons = []
+        self.labels = []
         self.ELEMENT_MARGIN_MULTIPLIER = .05
         self.CIRCLE_MARGIN = 50
         self.RECTANGLE = pygame.Rect(self.CIRCLE_MARGIN, self.CIRCLE_MARGIN, circle_radius * 2, circle_radius * 2)
@@ -110,6 +126,14 @@ class CirclePlotModel(object):
             arc = ElementArc(starting_angle, starting_angle + d_theta, color_dict[element], self.ELEMENT_WIDTH)
             self.elements.append(arc)
 
+            middle_of_arc = starting_angle + d_theta/2
+
+            pos_point_x = (self.CIRCLE_CENTER - 20) + (circle_radius + 20)*cos(middle_of_arc)
+            pos_point_y = (self.CIRCLE_CENTER - 40) - (circle_radius + 20)*sin(middle_of_arc)
+
+            label = Label("images/{}.png".format(element),(pos_point_x, pos_point_y),color_dict[element])
+            self.labels.append(label)
+
             #Because the number might not have all 10 digits
             if element in element_histogram:
                 startpoint_d_theta = d_theta / (element_histogram[element]+1)
@@ -137,6 +161,13 @@ class CirclePlotModel(object):
             new_button = Button(center, self.BUTTON_RADIUS)
             self.buttons.append(new_button)
             x_center += self.BUTTON_DISTANCE
+
+class PyGameMouseController(object):
+    def __init__(self, model):
+        self.model = model
+
+    def handle_event(self, event):
+        """ Look for mouse movements and respond appropriately """
 
 def generate_connection_histogram(input_list):
     """Given a list of strings, generate two things:
@@ -193,8 +224,7 @@ if __name__ == '__main__':
     phi = str((1.0 + 5.0 ** 0.5) / 2)
     potential_plots = [pi_value, medium_pi, long_pi, one_seventh, three_sevenths, five_sevenths,
     e_value, one_eleventh, one_121, one_ll_cubed, phi, 0]
-    print len(potential_plots)
-    #connection_list, word_histogram = generate_connection_histogram(sanitize_float(0))
+
     pygame.init()
     size = (900, 1000)
     screen = pygame.display.set_mode(size)
