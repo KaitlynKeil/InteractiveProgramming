@@ -12,6 +12,12 @@ from pygame.locals import QUIT
 import time
 from random import choice
 
+def color_surface(surface, red, green, blue):
+    arr = pygame.surfarray.pixels3d(surface)
+    arr[:,:,0] = red
+    arr[:,:,1] = green
+    arr[:,:,2] = blue
+
 class CirclePlotView(object):
     """ Visualizes the circle plot in a pygame window """
     def __init__(self, model, screen):
@@ -22,6 +28,10 @@ class CirclePlotView(object):
         self.screen.fill(pygame.Color('black'))
         for element in self.model.elements:
             pygame.draw.arc(self.screen, pygame.Color(element.color), model.RECTANGLE, element.start_angle, element.stop_angle, element.width)
+            label = pygame.image.load('images/0.png')
+            label.convert_alpha()
+            color_surface(label,element.color)
+            self.screen.blit(label,model.RECTANGLE)
         for connection in self.model.connections:
             pygame.draw.line(self.screen, pygame.Color(connection.color), connection.start_pos, connection.end_pos, connection.width)
         #for button in self.buttons:

@@ -1,2 +1,3 @@
 # InteractiveProgramming
-This is the base repo for the interactive programming project for Software Design, Spring 2016 at Olin College.
+Repo for SoftDes Spring 2016 MP #4: Interactive Programming
+Authors: Coleman Ellis and Kaitlyn Keil
