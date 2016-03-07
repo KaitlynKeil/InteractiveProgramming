@@ -53,7 +53,7 @@ class ConnectionArc(object):
     
 class CirclePlotModel(object):
     """ Stores the state of the circle plot """
-    def __init__(self, element_histogram, connection_list, circle_radius = 450):
+    def __init__(self, element_histogram, connection_list, circle_radius = 400):
         self.elements = []
         self.connections = []
         self.ELEMENT_MARGIN_MULTIPLIER = .05
@@ -72,7 +72,7 @@ class CirclePlotModel(object):
 
         wedge_angle = 2*pi / len(element_list)
         margin = wedge_angle * self.ELEMENT_MARGIN_MULTIPLIER
-        starting_angle = -wedge_angle
+        starting_angle = pi/2 - wedge_angle/2 + margin
         d_theta = wedge_angle - margin
 
         #A dictionary of possible startpoints
@@ -149,9 +149,9 @@ if __name__ == '__main__':
     doctest.testmod()
     medium_pi = "3.1415926535897932384626433832795028841971693993751058209749445923078164"
     long_pi = "3.141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117067982148086513282306647093844609550582231725359408128481117450284102701938521105559644622948954930381964428810975665933446128475648233786783165271201909145648566923460348610454326648213393607260249141273724587006606315588174881520920962829254091715364367892590360011330530548820466521384146951941511609433057270365759591953092186117381932611793105118548074462379962749567351885752724891227938183011949129833673362440656643086021394946395224737190"
-    connection_list, word_histogram = generate_connection_histogram(sanitize_float(long_pi))
+    connection_list, word_histogram = generate_connection_histogram(sanitize_float(0))
     pygame.init()
-    size = (1000, 1000)
+    size = (900, 1000)
     screen = pygame.display.set_mode(size)
 
     model = CirclePlotModel(word_histogram, connection_list)
