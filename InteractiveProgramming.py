@@ -12,8 +12,6 @@ from pygame.locals import QUIT, MOUSEMOTION, MOUSEBUTTONDOWN, MOUSEBUTTONUP
 from pygbutton import PygButton
 import time
 from random import choice
-from PIL import Image
-from resizeimage import resizeimage
 
 def color_surface(surface, red, green, blue):
     arr = pygame.surfarray.pixels3d(surface)
@@ -80,6 +78,13 @@ class ModelButton(PygButton):
         #Make the buttons white
         self.surfaceNormal.convert_alpha()
         color_surface(self.surfaceNormal,255,255,255) 
+        self.surfaceNormal = pygame.transform.scale(self.surfaceNormal,(50,50))
+
+        self.surfaceHighlight = pygame.transform.scale(self.surfaceHighlight,(50,50))
+        color_surface(self.surfaceHighlight,255,255,128)
+        self.surfaceDown = self.surfaceHighlight
+
+        self._rect = pygame.Rect(rect)
 
 class Label(object):
     """ Makes a label object """
@@ -263,7 +268,7 @@ if __name__ == '__main__':
 
     
 
-    model = CirclePlotModel(phi, buttons)
+    model = CirclePlotModel(0, buttons)
     view = CirclePlotView(model, screen)
 
     running = True
@@ -271,5 +276,12 @@ if __name__ == '__main__':
         for event in pygame.event.get():
             if event.type == QUIT:
                 running = False
+            if event.type == MOUSEBUTTONUP or event.type == MOUSEBUTTONDOWN or event.type == MOUSEMOTION:
+                for button in buttons:
+                    events = button.handleEvent(event)
+                    if 'click' in events:
+                        model = CirclePlotModel(button.num,buttons)
+                        view = CirclePlotView(model,screen)
+
         view.draw()
         time.sleep(.001)
