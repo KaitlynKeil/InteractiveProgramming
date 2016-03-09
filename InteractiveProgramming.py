@@ -9,6 +9,7 @@ SoftDes Spring 2016
 from math import *
 import pygame
 from pygame.locals import QUIT, MOUSEMOTION, MOUSEBUTTONDOWN, MOUSEBUTTONUP
+from pygbutton import PygButton
 import time
 from random import choice
 
@@ -31,7 +32,7 @@ class CirclePlotView(object):
         for connection in self.model.connections:
             pygame.draw.line(self.screen, pygame.Color(connection.color), connection.start_pos, connection.end_pos, connection.width)
         for button in self.model.buttons:
-            pygame.draw.circle(self.screen, pygame.Color('white'), button.center, button.radius, 0)
+            button.draw(self.screen)
         for label in self.model.labels:
             self.screen.blit(label.im,label.pos)    
 
@@ -62,11 +63,21 @@ class ConnectionArc(object):
         self.width = width
         self.color = color
 
-class Button(object):
-    """ Pygame rectangle with a label """
-    def __init__(self, center, radius):
-        self.center = center
-        self.radius = radius
+class ModelButton(PygButton):
+    """ A PygButton that changes what number's plot is displayed
+
+    rect = bounds of the button
+    im = image of the button to display
+    num = number to generate model from"""
+    def __init__(self, rect, im, num):
+        self.num = num
+
+        #Initialize a PygButton using the rectangle and image provided
+        super(ModelButton, self).__init__(rect,'',(0,0,0),(0,0,0),None,im,None,None)      
+
+        #Make the buttons white
+        self.surfaceNormal.convert_alpha()
+        color_surface(self.surfaceNormal,255,255,255) 
 
 class Label(object):
     """ Makes a label object """
@@ -89,7 +100,7 @@ class CirclePlotModel(object):
     def __init__(self, number, button_list, circle_radius = 400):
         self.elements = []
         self.connections = []
-        self.buttons = []
+        self.buttons = button_list
         self.labels = []
         self.ELEMENT_MARGIN_MULTIPLIER = .05
         self.CIRCLE_MARGIN = 50
@@ -97,8 +108,6 @@ class CirclePlotModel(object):
         self.RADIUS = circle_radius
         self.ELEMENT_WIDTH = 20
         self.CIRCLE_CENTER = self.CIRCLE_MARGIN + circle_radius
-        self.BUTTON_RADIUS = 25
-        self.BUTTON_DISTANCE = 75
         inner_radius = circle_radius - self.ELEMENT_WIDTH
 
         connection_list, element_histogram = generate_connection_histogram(sanitize_float(number))
@@ -153,14 +162,6 @@ class CirclePlotModel(object):
             second_point_y = self.CIRCLE_CENTER + inner_radius*sin(second_angle)
             connection = ConnectionArc((first_point_x, first_point_y), (second_point_x, second_point_y),color_dict[first])
             self.connections.append(connection)
-
-        y_center = 1000 - 50
-        x_center = 37
-        for button in button_list:
-            center = (x_center, y_center)
-            new_button = Button(center, self.BUTTON_RADIUS)
-            self.buttons.append(new_button)
-            x_center += self.BUTTON_DISTANCE
 
 class PyGameMouseController(object):
     def __init__(self, model):
@@ -222,14 +223,44 @@ if __name__ == '__main__':
     one_121 = str(1.0/121)
     one_ll_cubed = str(1.0/(11**3))
     phi = str((1.0 + 5.0 ** 0.5) / 2)
-    potential_plots = [pi_value, medium_pi, long_pi, one_seventh, three_sevenths, five_sevenths,
-    e_value, one_eleventh, one_121, one_ll_cubed, phi, 0]
+    potential_plots = [
+        (pi_value,"images/small_pi_button.png"), 
+        (medium_pi,"images/medium_pi_button.png"),
+        (long_pi,"images/large_pi.png"), 
+        (one_seventh,"images/1_7_button.png"),
+        (three_sevenths,"images/3_7_button.png"), 
+        (five_sevenths,"images/5_7_button.png"),
+        (e_value,"images/e_button.png"), 
+        (one_eleventh,"images/1_11_button.png"),
+        (one_121,"images/1_11_2_button.png"), 
+        (one_ll_cubed,"images/1_11_3_button.png"),
+        (phi,"images/phi_button.png"), 
+        (0,"images/small_pi_button.png")
+    ]
 
     pygame.init()
     size = (900, 1000)
     screen = pygame.display.set_mode(size)
 
-    model = CirclePlotModel(phi, potential_plots)
+    buttons = []
+
+    y_center = 1000 - 75
+    x_center = 12
+    for potential_plot in potential_plots:
+        top_left = (x_center, y_center)
+        width_height = (50,50)
+
+        num = potential_plot[0]
+        im_path = potential_plot[1]
+
+        new_button = ModelButton(pygame.Rect(top_left,width_height),im_path,num)
+
+        buttons.append(new_button)
+        x_center += 75
+
+    
+
+    model = CirclePlotModel(phi, buttons)
     view = CirclePlotView(model, screen)
 
     running = True
