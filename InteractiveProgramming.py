@@ -11,6 +11,8 @@ import pygame
 from pygame.locals import QUIT, MOUSEMOTION, MOUSEBUTTONDOWN, MOUSEBUTTONUP
 import time
 from random import choice
+from PIL import Image
+from resizeimage import resizeimage
 
 def color_surface(surface, red, green, blue):
     arr = pygame.surfarray.pixels3d(surface)
@@ -81,6 +83,7 @@ class Label(object):
         self.b = self.color.b
 
         self.im = pygame.image.load(file_name)
+        self.im = pygame.transform.scale(self.im, (20, 40))
         self.im.convert_alpha()
         color_surface(self.im,self.r,self.g,self.b)
     
@@ -128,8 +131,8 @@ class CirclePlotModel(object):
 
             middle_of_arc = starting_angle + d_theta/2
 
-            pos_point_x = (self.CIRCLE_CENTER - 20) + (circle_radius + 20)*cos(middle_of_arc)
-            pos_point_y = (self.CIRCLE_CENTER - 40) - (circle_radius + 20)*sin(middle_of_arc)
+            pos_point_x = (self.CIRCLE_CENTER - 10) + (circle_radius + 30)*cos(middle_of_arc)
+            pos_point_y = (self.CIRCLE_CENTER - 20) - (circle_radius + 20)*sin(middle_of_arc)
 
             label = Label("images/{}.png".format(element),(pos_point_x, pos_point_y),color_dict[element])
             self.labels.append(label)
