@@ -14,13 +14,22 @@ import time
 from random import choice
 
 def color_surface(surface, red, green, blue):
+    """A helper function to recolor images on surfaces
+
+    surface = the surface to recolor
+    red, green, blue = the values of the color to change the image to
+    """
     arr = pygame.surfarray.pixels3d(surface)
     arr[:,:,0] = red
     arr[:,:,1] = green
     arr[:,:,2] = blue
 
 class CirclePlotView(object):
-    """ Visualizes the circle plot in a pygame window """
+    """ Visualizes the circle plot in a pygame window 
+
+    model = a CirclePlotModel to draw
+    screen = the screen to draw the model on
+    """
     def __init__(self, model, screen):
         self.model = model
         self.screen = screen
@@ -42,11 +51,12 @@ class ElementArc(object):
     """ An arc section that represents an element (integer or word) of the given 
         thing
 
-        Rect = the bounds of the outer circle
         start_angle = the angle (in radians) at which the arc begins
         stop_angle = the angle (in radians) at which the arc ends
+        color = what color to draw the arc
+        width = how wide to make the arc
     """
-#arc(Surface, color, Rect, start_angle, stop_angle, width=1)
+
     def __init__(self, start_angle, stop_angle, color, width):
         self.start_angle = start_angle
         self.stop_angle = stop_angle
@@ -55,8 +65,12 @@ class ElementArc(object):
 
 class ConnectionArc(object):
     """ Connects two elements. Currently a straight line.
+
+    start_pos, end_pos: coordinates to draw the line from
+    color: what color to draw the line
+    width: what width to make the line
     """
-    #line(Surface, color, start_pos, end_pos, width=1) -> Rect
+
     def __init__(self, start_pos, end_pos, color, width = 1):
         self.start_pos = start_pos
         self.end_pos = end_pos
@@ -80,19 +94,28 @@ class ModelButton(PygButton):
         color_surface(self.surfaceNormal,255,255,255) 
         self.surfaceNormal = pygame.transform.scale(self.surfaceNormal,(50,50))
 
+        #Make the buttons yellow when moused over
         self.surfaceHighlight = pygame.transform.scale(self.surfaceHighlight,(50,50))
         color_surface(self.surfaceHighlight,255,255,128)
         self.surfaceDown = self.surfaceHighlight
 
+        #Make sure the button stays the specified size
         self._rect = pygame.Rect(rect)
 
 class Label(object):
-    """ Makes a label object """
+    """ A label showing what digit each section represents
+
+    file_name = the filepath to the image for the label
+    pos = the coordinate for the upper left hand corner of the image
+    color = the color to draw the image as
+    """
+
     def __init__(self, file_name, pos, color):
         self.file_name = file_name
         self.pos = pos
         self.color = color
 
+        #color_surface() requires rgb values
         self.color = pygame.Color(self.color)
         self.r = self.color.r
         self.g = self.color.g
@@ -104,7 +127,12 @@ class Label(object):
         color_surface(self.im,self.r,self.g,self.b)
     
 class CirclePlotModel(object):
-    """ Stores the state of the circle plot """
+    """The model that stores all of the elements of the plot
+
+    number = the number that this model visualizes
+    button_list = a list of all possible buttons, as ModelButton objects
+    circle_radius = the radius to draw the circle plot at
+    """
     def __init__(self, number, button_list, circle_radius = 400):
         self.elements = []
         self.connections = []
@@ -120,20 +148,20 @@ class CirclePlotModel(object):
 
         connection_list, element_histogram = self.generate_connection_histogram(self.sanitize_float(number))
 
-        # For now, we don't care what the elements actually are; we want to make sure it points
-        # to the right place with all 10 integers.
-
-        # element_list = sorted(element_histogram.keys())
+        #we don't use the element_histogram from generate_connection_histogram, but
+        #leaving that functionality in makes it easier for us to expand this program
+        #to texts at a later date
         element_list = list('0123456789')
 
+        #wedge_angle is the angle over which each element arc is drawn
         wedge_angle = 2*pi / len(element_list)
         margin = wedge_angle * self.ELEMENT_MARGIN_MULTIPLIER
         starting_angle = pi/2 - wedge_angle/2 + margin
         d_theta = wedge_angle - margin
 
-        #A dictionary of possible startpoints
         startpoint_dict = {}
 
+        #the colors for this scheme were chosen because they look nice together
         color_dict = {'0':'#29D5BD','1':'#AA8239','2':'#E43C4C','3':'#246B61','4':'#ECAE3E',
             '5':'#FB3044','6':'#279485','7':'#FFB531','8':'#A43741','9':'#1A413C'}
 
@@ -149,7 +177,7 @@ class CirclePlotModel(object):
             label = Label("images/{}.png".format(element),(pos_point_x, pos_point_y),color_dict[element])
             self.labels.append(label)
 
-            #Because the number might not have all 10 digits
+            #Because the number might not have all 10 digits, element might not be in element_histogram
             if element in element_histogram:
                 startpoint_d_theta = d_theta / (element_histogram[element]+1)
                 startpoints = [margin - starting_angle - startpoint_d_theta*i for i in range(1,element_histogram[element]+1)]
@@ -157,7 +185,6 @@ class CirclePlotModel(object):
 
             starting_angle -= wedge_angle
 
-        # Assumes integers
         for first, second in connection_list:
             first_angle = startpoint_dict[first].pop(0)
             first_point_x = self.CIRCLE_CENTER + inner_radius*cos(first_angle)
@@ -173,6 +200,9 @@ class CirclePlotModel(object):
         """Given a list of strings, generate two things:
         A list of each pair of adjacent elements as tuples
         A histogram of the number of occurences of each element, stored in a dictionary.
+
+        We had doctests for this function, but moving it into CirclePlotModel broke them
+        and we couldn't fix them.
         """
 
         output_list = []
@@ -192,6 +222,9 @@ class CirclePlotModel(object):
     def sanitize_float(self,  flt):
         """Given a floating point number, returns a list of the digits of the
         number as strings
+
+        We had doctests for this function, but moving it into CirclePlotModel broke them
+        and we couldn't fix them.
         """
 
         flt_string = str(flt)
@@ -215,7 +248,7 @@ if __name__ == '__main__':
     one_43 = "0.023255813953488372093023255813953488372093023255813953488372093023255813953488372093023255813953488372093023255813953488372093023255813953488372093023255813953488372093023255813953488372093023255813953488372093023255813953488372093023255813953488372093023255813953488372093023255813953488372093023255813953488372093023255813953488372093023255813953488372093023255813953488372093023255813953488372093023255813953488372093023255813953488372093023255813953488372093023255813953488372093023255813953488372093023255813953488372093"
     one_67 = "0.014925373134328358208955223880597014925373134328358208955223880597014925373134328358208955223880597014925373134328358208955223880597014925373134328358208955223880597014925373134328358208955223880597014925373134328358208955223880597014925373134328358208955223880597014925373134328358208955223880597014925373134328358208955223880597014925373134328358208955223880597014925373134328358208955223880597014925373134328358208955223880597014925373134328358208955223880597014925373134328358208955223880597014925373134328358208955223880597"
     phi = "1.61803398874989484820458683436563811772030917980576286213544862270526046281890244970720720418939113748475408807538689175212663386222353693179318006076672635443338908659593958290563832266131992829026788067520876689250171169620703222104321626954862629631361443814975870122034080588795445474924618569536486444924104432077134494704956584678850987433944221254487706647809158846074998871240076521705751797883416625624940758906970400028121042762177111777805315317141011704666599146697987317613560067087480710131795236894275219484353056783002287856997829"
-    potential_plots = [
+    potential_models = [
         (pi_value,"images/small_pi_button.png"), 
         (medium_pi,"images/medium_pi_button.png"),
         (long_pi,"images/large_pi.png"), 
@@ -238,20 +271,19 @@ if __name__ == '__main__':
 
     y_center = 1000 - 75
     x_center = 12
-    for potential_plot in potential_plots:
+    for potential_model in potential_models:
         top_left = (x_center, y_center)
         width_height = (50,50)
 
-        num = potential_plot[0]
-        im_path = potential_plot[1]
+        num = potential_model[0]
+        im_path = potential_model[1]
 
         new_button = ModelButton(pygame.Rect(top_left,width_height),im_path,num)
 
         buttons.append(new_button)
         x_center += 75
-
-    
-
+  
+    #defaults to showing a blank plot
     model = CirclePlotModel(0, buttons)
     view = CirclePlotView(model, screen)
 
@@ -262,7 +294,9 @@ if __name__ == '__main__':
                 running = False
             if event.type == MOUSEBUTTONUP or event.type == MOUSEBUTTONDOWN or event.type == MOUSEMOTION:
                 for button in buttons:
+                    #button.handleEvent returns a list of actions relevant to the button
                     events = button.handleEvent(event)
+                    #so, we can check if the button was clicked and act accordingly
                     if 'click' in events:
                         model = CirclePlotModel(button.num,buttons)
                         view = CirclePlotView(model,screen)
